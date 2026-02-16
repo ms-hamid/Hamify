@@ -1,0 +1,184 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RoleUser {
+  superadmin
+  customer
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(255)
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  role      RoleUser @default(customer)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relation Field (Virtual): Tidak membuat kolom di database
+  // Hanya untuk memudahkan akses data relasi di Prisma Client (User -> Order[])
+  orders Order[]
+
+  // @@map: Mapping nama table di database.
+  // Prisma menggunakan PascalCase (User) untuk model,
+  // tapi @@map("users") membuat tabel di DB bernama 'users' (snake_case).
+  @@map("users")
+}
+
+model Brand {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  logo      String    @db.VarChar(255)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("brands")
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("categories")
+}
+
+model Location {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("locations")
+}
+
+enum StockProduct {
+  ready
+  preorder
+}
+
+model Product {
+  id Int @id @default(autoincrement())
+
+  // @map: Mapping nama kolom.
+  // Di kode JS/TS kita akses sebagai 'brandId' (camelCase),
+  // tapi di database kolomnya bernama 'brand_id' (snake_case).
+  brandId Int @map("brand_id")
+
+  // @relation: Menghubungkan model Product dengan Brand.
+  // fields: [brandId] -> kolom di tabel Product ini yang menyimpan ID brand.
+  // references: [id]  -> kolom di tabel Brand yang dirujuk (Primary Key).
+  // Ini memungkinkan kita mengambil data brand lengkap via 'product.brand'.
+  brand Brand @relation(fields: [brandId], references: [id])
+
+  categoryId Int      @map("category_id")
+  // @relation untuk menghubungkan Product -> Category
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  locationId Int      @map("location_id")
+  // @relation untuk menghubungkan Product -> Location
+  location   Location @relation(fields: [locationId], references: [id])
+
+  name        String @db.VarChar(255)
+  description String @db.Text
+
+  // BigInt: Tipe data angka besar (64-bit integer).
+  // Di DB: Column 'price' type BIGINT.
+  // Di JS/TS: Variabel 'price' type BigInt (perlu penanganan khusus saat JSON.stringify).
+  price BigInt @db.BigInt
+
+  stock StockProduct
+
+  // String[]: Tipe array native di Postgres.
+  // Menyimpan banyak string dalam satu kolom (contoh: ["img1.jpg", "img2.jpg"]).
+  images String[]
+
+  orders    OrderProduct[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@map("products")
+}
+
+enum StatusOrder {
+  pending
+  success
+  failed
+}
+
+model Order {
+  id     Int    @id @default(autoincrement())
+  code   String @unique @db.Text
+  userId Int    @map("user_id")
+
+  // @relation menghubungkan Order -> User
+  // Setiap order pasti punya satu user (userId)
+  user User @relation(fields: [userId], references: [id])
+
+  total  BigInt      @db.BigInt
+  status StatusOrder
+
+  // Relasi Optional (One-to-One):
+  // Tanda ? pada OrderDetail? artinya satu Order
+  // BISA punya satu detail, tapi BISA JUGA TIDAK punya (belum dibuat).
+  detail OrderDetail?
+
+  products  OrderProduct[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@map("orders")
+}
+
+model OrderDetail {
+  id      Int @id @default(autoincrement())
+  orderId Int @unique @map("order_id")
+
+  // @relation One-to-One: Satu Order hanya bisa punya satu OrderDetail.
+  order Order @relation(fields: [orderId], references: [id])
+
+  name       String @db.VarChar(255)
+  phone      String @db.VarChar(255)
+  address    String @db.Text
+  city       String @db.VarChar(255)
+  postalCode String @map("postal_code") @db.VarChar(255)
+
+  // String?: Field Optional.
+  // Tanda ? artinya kolom ini bisa NULL di database.
+  // User boleh mengisinya atau membiarkannya kosong.
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("orders_detail")
+}
+
+model OrderProduct {
+  id        Int      @id @default(autoincrement())
+  productId Int      @map("product_id")
+  product   Product  @relation(fields: [productId], references: [id])
+  orderId   Int      @map("order_id")
+  order     Order    @relation(fields: [orderId], references: [id])
+  subtotal  Int
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("orders_products")
+}
