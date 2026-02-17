@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { prisma } from "./prisma";
 import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from "@oslojs/encoding";
 import { sha256 } from "@oslojs/crypto/sha2";
-import { hash, verify } from "@node-rs/argon2";
+import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
 import { cache } from "react";
 
@@ -184,22 +184,16 @@ export const getCurrentSession = cache(async (): Promise<SessionValidationResult
 // FUNGSI UTAMA: MANAGEMENT PASSWORD
 
 /**
- * Hash password menggunakan algoritma Argon2id (standar industri saat ini).
- * Lebih aman daripada bcrypt.
+ * Hash password menggunakan algoritma Bcrypt (fallback dari Argon2).
  */
 export async function hashPassword(password: string): Promise<string> {
-    return await hash(password, {
-        // Rekomendasi konfigurasi OWASP untuk Argon2id
-        memoryCost: 19456,
-        timeCost: 2,
-        outputLen: 32,
-        parallelism: 1
-    });
+    const saltRounds = 10;
+    return await bcrypt.hash(password, saltRounds);
 }
 
 /**
- * Verifikasi password dengan hash yang tersimpan.
+ * Verifikasi password dengan hash yang tersimpan menggunakan Bcrypt.
  */
 export async function verifyPassword(hash: string, password: string): Promise<boolean> {
-    return await verify(hash, password);
+    return await bcrypt.compare(password, hash);
 }

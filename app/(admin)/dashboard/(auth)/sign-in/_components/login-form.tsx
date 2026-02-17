@@ -16,19 +16,25 @@ import { useActionState } from "react"
 // Import the Server Action we created
 import { SignIn } from "../lib/actions"
 import { useFormStatus } from "react-dom"
+import { AlertCircle } from "lucide-react"
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert"
 
 const InitialState: ActionResult = {
   error: ""
 }
 
 function SubmitHandler() {
-  const { pending } = useFormStatus()   
+  const { pending } = useFormStatus()
 
   return (
     <Button type="submit" disabled={pending}>
       {pending ? "Logging in..." : "Sign In"}
     </Button>
-  ) 
+  )
 }
 
 export function LoginForm({
@@ -56,6 +62,16 @@ export function LoginForm({
                   Login to your Acme Inc account
                 </p>
               </div>
+
+              {state.error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>
+                    {state.error}
+                  </AlertDescription>
+                </Alert>
+              )}
 
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
