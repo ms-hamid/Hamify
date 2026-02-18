@@ -26,6 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { toast } from "sonner";
 
 export function CreateCategoryDialog() {
     const [open, setOpen] = useState(false);
@@ -48,6 +49,7 @@ export function CreateCategoryDialog() {
             } else {
                 setOpen(false);
                 form.reset();
+                toast.success("Category created successfully");
             }
         });
     }

@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Category } from "@prisma/client";
+import { toast } from "sonner";
 
 interface EditCategoryDialogProps {
     category: Category;
@@ -52,6 +53,7 @@ export function EditCategoryDialog({ category }: EditCategoryDialogProps) {
                 setError(result.error);
             } else {
                 setOpen(false);
+                toast.success("Category updated successfully");
             }
         });
     }

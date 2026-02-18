@@ -3,6 +3,7 @@
 import { deleteCategory } from "../lib/actions";
 import { useTransition, useState } from "react";
 import { Loader2, Trash } from "lucide-react";
+import { toast } from "sonner";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -28,6 +29,7 @@ export function DeleteCategoryDialog({ id }: DeleteCategoryDialogProps) {
         startTransition(async () => {
             await deleteCategory(id);
             setOpen(false);
+            toast.success("Category deleted successfully");
         });
     }
 

@@ -14,6 +14,18 @@ export async function createCategory(data: TCategory) {
   }
 
   try {
+    const existingCategory = await prisma.category.findFirst({
+        where: {
+            name: data.name,
+        }
+    })
+
+    if (existingCategory) {
+        return {
+            error: "Category already exists",
+        }
+    }
+
     await prisma.category.create({
       data: {
         name: data.name,
@@ -40,6 +52,21 @@ export async function updateCategory(id: number, data: TCategory) {
   }
 
   try {
+    const existingCategory = await prisma.category.findFirst({
+        where: {
+            name: data.name,
+            NOT: {
+              id: id
+            }
+        }
+    })
+
+    if (existingCategory) {
+        return {
+            error: "Category already exists",
+        }
+    }
+
     await prisma.category.update({
       where: { id },
       data: {
