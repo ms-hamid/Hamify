@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table"
 import { Category } from "@prisma/client"
-import { MoreHorizontal, Router, Trash } from "lucide-react"
+import { MoreHorizontal, Router, Trash, Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
@@ -28,37 +28,42 @@ export const columns: ColumnDef<Category>[] = [
                 <Button
                     variant="ghost"
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    className="pl-0 hover:bg-transparent"
                 >
                     Category Name
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             )
         },
+        cell: ({ row }) => <div className="text-left pl-4 capitalize">{row.getValue("name")}</div>,
     },
     {
         id: "actions",
+        enableHiding: false,
         cell: ({ row }) => {
             const category = row.original
 
             return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem
-                            onClick={() => navigator.clipboard.writeText(String(category.id))}
-                        >
-                            Copy Category ID
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-yellow-600 focus:text-yellow-600 cursor-pointer">Edit</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600 focus:text-red-600 cursor-pointer">Delete</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="flex items-center justify-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-8 p-0 border-blue-600 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        onClick={() => console.log("Edit", category.id)} // Placeholder for Edit action
+                    >
+                        <span className="sr-only">Edit</span>
+                        <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-8 p-0 border-red-600 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => console.log("Delete", category.id)} // Placeholder for Delete action
+                    >
+                        <span className="sr-only">Delete</span>
+                        <Trash className="h-4 w-4" />
+                    </Button>
+                </div>
             )
         },
     },

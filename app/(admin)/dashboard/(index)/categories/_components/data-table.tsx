@@ -20,6 +20,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -41,6 +42,10 @@ export function DataTable<TData, TValue>({
         getSortedRowModel: getSortedRowModel(),
         state: {
             sorting,
+            pagination: {
+                pageIndex: 0,
+                pageSize: 5,
+            },
         },
     })
 
@@ -91,22 +96,30 @@ export function DataTable<TData, TValue>({
                 </Table>
             </div>
             <div className="flex items-center justify-end space-x-2 py-4">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
-                >
-                    Previous
-                </Button>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                >
-                    Next
-                </Button>
+                <div className="flex-1 text-sm text-muted-foreground">
+                    Page {table.getState().pagination.pageIndex + 1} of{" "}
+                    {table.getPageCount()}
+                </div>
+                <div className="space-x-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => table.previousPage()}
+                        disabled={!table.getCanPreviousPage()}
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                        <span className="sr-only">Previous</span>
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => table.nextPage()}
+                        disabled={!table.getCanNextPage()}
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                        <span className="sr-only">Next</span>
+                    </Button>
+                </div>
             </div>
         </div>
     )
