@@ -1,6 +1,7 @@
 "use server";
 
 import { supabase } from "./supabase";
+import { ACCEPTED_IMAGE_TYPES, MAX_FILE_SIZE } from "./constants";
 
 export async function uploadFile(formData: FormData) {
   const file = formData.get("file") as File;
@@ -13,15 +14,14 @@ export async function uploadFile(formData: FormData) {
   const buffer = Buffer.from(bytes);
 
   // Validate file type
-  const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
-  if (!validTypes.includes(file.type)) {
-    return { error: "Invalid file type. Only JPEG, PNG, and WebP are allowed." };
+  // Validate file type
+  if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+    return { error: `Invalid file type. Only JPEG, PNG, and WebP are allowed.` };
   }
 
-  // Validate file size (optional, e.g., 5MB)
-  const maxSize = 5 * 1024 * 1024; // 5MB
-  if (file.size > maxSize) {
-    return { error: "File size too large. Max 5MB." };
+  // Validate file size
+  if (file.size > MAX_FILE_SIZE) {
+    return { error: `File size too large. Max ${MAX_FILE_SIZE / (1024 * 1024)}MB.` };
   }
 
   // Create unique filename

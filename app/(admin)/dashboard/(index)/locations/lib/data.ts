@@ -1,15 +1,5 @@
-import { prisma } from "@/lib/prisma";
+import { getLocations as dalGetLocations } from "@/lib/dal/locations";
 
 export async function getLocations() {
-  try {
-    const locations = await prisma.location.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-    return locations;
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch locations');
-  }
+  return await dalGetLocations();
 }

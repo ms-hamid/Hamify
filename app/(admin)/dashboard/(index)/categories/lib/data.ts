@@ -1,16 +1,5 @@
-import { prisma } from '@/lib/prisma'; // Assuming lib/prisma exists, I should check this.
-import { Category } from '@prisma/client';
+import { getCategories as dalGetCategories } from "@/lib/dal/categories";
 
 export async function getCategories() {
-  try {
-    const categories = await prisma.category.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-    return categories;
-  } catch (error) {
-    console.error('Database Error:', error);
-    throw new Error('Failed to fetch categories');
-  }
+  return await dalGetCategories();
 }
