@@ -131,8 +131,10 @@ model Product {
 
 enum StatusOrder {
   pending
-  success
-  failed
+  processing
+  shipped
+  delivered
+  cancelled
 }
 
 model Order {
