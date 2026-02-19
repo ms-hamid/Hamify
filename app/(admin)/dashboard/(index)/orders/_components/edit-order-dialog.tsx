@@ -1,7 +1,7 @@
 "use client";
 
 import { updateOrderStatus } from "../lib/actions";
-import { orderStatusSchema, TOrderStatus } from "../lib/schema";
+import { orderStatusSchema, TOrderStatus } from "@/lib/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useTransition, useState, useEffect } from "react";

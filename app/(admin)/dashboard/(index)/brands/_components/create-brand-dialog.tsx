@@ -1,7 +1,7 @@
 "use client";
 
 import { createBrand } from "../lib/actions";
-import { brandSchema, TBrand } from "../lib/schema";
+import { brandSchema, TBrand } from "@/lib/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useTransition, useState } from "react";

@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { brandSchema, TBrand } from "./schema";
+import { brandSchema, TBrand } from "@/lib/schema";
 
 export async function createBrand(data: TBrand) {
   const validation = brandSchema.safeParse(data);

@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { productSchema, TProduct } from "./schema";
+import { productSchema, TProduct } from "@/lib/schema";
 
 export async function createProduct(data: TProduct) {
   const validation = productSchema.safeParse(data);

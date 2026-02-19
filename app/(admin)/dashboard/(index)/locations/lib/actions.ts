@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { locationSchema, TLocation } from "./schema";
+import { locationSchema, TLocation } from "@/lib/schema";
 
 export async function createLocation(data: TLocation) {
   const validation = locationSchema.safeParse(data);

@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { orderStatusSchema, TOrderStatus } from "./schema";
+import { orderStatusSchema, TOrderStatus } from "@/lib/schema";
 
 export async function updateOrderStatus(id: number, data: TOrderStatus) {
   const validation = orderStatusSchema.safeParse(data);

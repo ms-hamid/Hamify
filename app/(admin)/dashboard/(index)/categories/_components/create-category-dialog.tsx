@@ -1,7 +1,7 @@
 "use client";
 
 import { createCategory } from "../lib/actions";
-import { categorySchema, TCategory } from "../lib/schema";
+import { categorySchema, TCategory } from "@/lib/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useTransition, useState } from "react";

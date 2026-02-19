@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { categorySchema, TCategory } from "./schema";
+import { categorySchema, TCategory } from "@/lib/schema";
 
 export async function createCategory(data: TCategory) {
   const validation = categorySchema.safeParse(data);
