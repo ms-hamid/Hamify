@@ -1,11 +1,12 @@
 "use client";
 
-import { updateCategory } from "../lib/actions";
-import { categorySchema, TCategory } from "../lib/schema";
+import { updateLocation } from "../lib/actions";
+import { locationSchema, TLocation } from "../lib/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useTransition, useState, useEffect } from "react";
 import { Loader2, Edit, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 import {
     Dialog,
     DialogContent,
@@ -26,43 +27,42 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Category } from "@prisma/client";
-import { toast } from "sonner";
+import { Location } from "@prisma/client";
 
-interface EditCategoryDialogProps {
-    category: Category;
+interface EditLocationDialogProps {
+    location: Location;
 }
 
-export function EditCategoryDialog({ category }: EditCategoryDialogProps) {
+export function EditLocationDialog({ location }: EditLocationDialogProps) {
     const [open, setOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
 
-    const form = useForm<TCategory>({
-        resolver: zodResolver(categorySchema),
+    const form = useForm<TLocation>({
+        resolver: zodResolver(locationSchema),
         defaultValues: {
-            name: category.name,
+            name: location.name,
         },
     });
 
     useEffect(() => {
         if (open) {
             form.reset({
-                name: category.name,
+                name: location.name,
             });
             setError(null);
         }
-    }, [category, open, form]);
+    }, [location, open, form]);
 
-    function onSubmit(values: TCategory) {
+    function onSubmit(values: TLocation) {
         setError(null);
         startTransition(async () => {
-            const result = await updateCategory(category.id, values);
+            const result = await updateLocation(location.id, values);
             if (result?.error) {
                 setError(result.error);
             } else {
                 setOpen(false);
-                toast.success("Category updated successfully");
+                toast.success("Location updated successfully");
             }
         });
     }
@@ -81,9 +81,9 @@ export function EditCategoryDialog({ category }: EditCategoryDialogProps) {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Edit Category</DialogTitle>
+                    <DialogTitle>Edit Location</DialogTitle>
                     <DialogDescription>
-                        Update the category name. Click save when you're done.
+                        Update the location name. Click save when you're done.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -102,9 +102,9 @@ export function EditCategoryDialog({ category }: EditCategoryDialogProps) {
                             name="name"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Category Name</FormLabel>
+                                    <FormLabel>Location Name</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="e.g. Electronics" disabled={isPending} {...field} />
+                                        <Input placeholder="e.g. Warehouse A" disabled={isPending} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
