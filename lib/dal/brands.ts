@@ -43,6 +43,20 @@ export async function createBrand(data: TBrand) {
 
 export async function updateBrand(id: number, data: TBrand) {
   try {
+    // Cek apakah logo berubah (ganti gambar ATAU hapus gambar)
+    // Kita ambil data lama dulu
+    const oldBrand = await prisma.brand.findUnique({
+        where: { id },
+        select: { logo: true }
+    });
+
+    // Jika ada logo lama, DAN logo baru berbeda (bisa URL baru atau string kosong), hapus yang lama
+    // Note: data.logo dari Zod schema bisa string kosong "" jika dihapus/tidak ada.
+    if (oldBrand?.logo && oldBrand.logo !== data.logo) {
+        console.log("DEBUG updateBrand: Deleting old logo", oldBrand.logo);
+        await deleteFile(oldBrand.logo);
+    }
+
     return await prisma.brand.update({
       where: { id },
       data: {
@@ -56,8 +70,19 @@ export async function updateBrand(id: number, data: TBrand) {
   }
 }
 
+import { deleteFile } from "@/lib/upload";
+
 export async function deleteBrand(id: number) {
   try {
+    const brand = await prisma.brand.findUnique({
+        where: { id },
+        select: { logo: true }
+    });
+
+    if (brand?.logo) {
+        await deleteFile(brand.logo);
+    }
+
     return await prisma.brand.delete({
       where: { id },
     });

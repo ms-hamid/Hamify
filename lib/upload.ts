@@ -51,3 +51,38 @@ export async function uploadFile(formData: FormData) {
     return { error: "Failed to save file" };
   }
 }
+
+export async function deleteFile(publicUrl: string) {
+  try {
+    // Extract file path from public URL
+    // URL format: https://[project-ref].supabase.co/storage/v1/object/public/[bucket]/[path/to/file]
+    // Extract file path from public URL
+    // URL format: https://[project-ref].supabase.co/storage/v1/object/public/[bucket]/[path/to/file]
+    
+    // Kita gunakan satu logic split yang sudah terbukti benar untuk project ini
+    const parts = publicUrl.split("/storage/v1/object/public/belanja/");
+    
+    if (parts.length < 2) {
+      console.error("Invalid Supabase public URL format");
+      return { error: "Invalid URL format" };
+    }
+
+    const filePath = parts[1];
+    
+    // console.log("Extracted file path:", filePath); // Optional: keep for debug or remove
+
+    const { error } = await supabase.storage
+      .from("belanja")
+      .remove([filePath]);
+
+    if (error) {
+      console.error("Delete error:", error);
+      return { error: `Failed to delete file: ${error.message}` };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Unexpected delete error:", error);
+    return { error: "Failed to delete file" };
+  }
+}

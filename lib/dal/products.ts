@@ -60,6 +60,26 @@ export async function createProduct(data: TProduct) {
 
 export async function updateProduct(id: number, data: TProduct) {
   try {
+    // Cek perubahan images (ganti, tambah, atau hapus semua)
+    const oldProduct = await prisma.product.findUnique({
+        where: { id },
+        select: { images: true }
+    });
+
+    if (oldProduct?.images) {
+        for (const oldImage of oldProduct.images) {
+            // Cek apakah image lama masih ada di data baru (TProduct.images)
+            // Jika tidak ada (berarti dihapus atau diganti), maka hapus file-nya dari storage
+            // data.images bisa saja kosong [] jika user menghapus semua gambar
+            const isImageKept = data.images && data.images.includes(oldImage);
+            
+            if (!isImageKept) {
+                 console.log("DEBUG updateProduct: Deleting old image", oldImage);
+                 await deleteFile(oldImage);
+            }
+        }
+    }
+
     return await prisma.product.update({
       where: { id },
       data: {
@@ -79,8 +99,21 @@ export async function updateProduct(id: number, data: TProduct) {
   }
 }
 
+import { deleteFile } from "@/lib/upload";
+
 export async function deleteProduct(id: number) {
   try {
+    const product = await prisma.product.findUnique({
+        where: { id },
+        select: { images: true }
+    });
+
+    if (product?.images && product.images.length > 0) {
+        for (const imageUrl of product.images) {
+            await deleteFile(imageUrl);
+        }
+    }
+
     return await prisma.product.delete({
       where: { id },
     });
