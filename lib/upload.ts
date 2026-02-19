@@ -1,7 +1,6 @@
 "use server";
 
-import { writeFile } from "fs/promises";
-import { join } from "path";
+import { supabase } from "./supabase";
 
 export async function uploadFile(formData: FormData) {
   const file = formData.get("file") as File;
@@ -16,15 +15,27 @@ export async function uploadFile(formData: FormData) {
   // Create unique filename
   const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
   const filename = `${uniqueSuffix}-${file.name.replace(/\s/g, "-")}`;
-  
-  // Save to public/uploads
-  const path = join(process.cwd(), "public/uploads", filename);
-  
+
   try {
-    await writeFile(path, buffer);
-    return { url: `/uploads/${filename}` };
+    const { data, error } = await supabase.storage
+      .from("belanja")
+      .upload(filename, buffer, {
+        contentType: file.type,
+        upsert: false,
+      });
+
+    if (error) {
+      console.error("Upload error:", error);
+      return { error: `Failed to upload file to Supabase: ${error.message}` };
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from("belanja")
+      .getPublicUrl(filename);
+
+    return { url: publicUrlData.publicUrl };
   } catch (error) {
-    console.error("Upload error:", error);
+    console.error("Unexpected upload error:", error);
     return { error: "Failed to save file" };
   }
 }
