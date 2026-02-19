@@ -1,6 +1,5 @@
 "use client";
 
-import { deleteCategory } from "../lib/actions";
 import { useTransition, useState } from "react";
 import { Loader2, Trash } from "lucide-react";
 import { toast } from "sonner";
@@ -17,19 +16,27 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
-interface DeleteCategoryDialogProps {
-    id: number;
+interface DeleteDialogProps {
+    id: number | string;
+    action: (id: any) => Promise<any>; // generic action
+    itemName?: string;
+    onSuccess?: () => void;
 }
 
-export function DeleteCategoryDialog({ id }: DeleteCategoryDialogProps) {
+export function DeleteDialog({ id, action, itemName = "item", onSuccess }: DeleteDialogProps) {
     const [open, setOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
 
     function handleDelete() {
         startTransition(async () => {
-            await deleteCategory(id);
-            setOpen(false);
-            toast.success("Category deleted successfully");
+            const result = await action(id);
+            if (result?.error) {
+                toast.error(result.error);
+            } else {
+                setOpen(false);
+                toast.success(`${itemName} deleted successfully`);
+                if (onSuccess) onSuccess();
+            }
         });
     }
 
@@ -49,7 +56,7 @@ export function DeleteCategoryDialog({ id }: DeleteCategoryDialogProps) {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the category.
+                        This action cannot be undone. This will permanently delete the {itemName.toLowerCase()}.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
