@@ -1,14 +1,14 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { Category } from "@prisma/client"
+import { User } from "@prisma/client"
 import { ArrowUpDown } from "lucide-react"
-import { EditCategoryDialog } from "./edit-category-dialog"
 import { DeleteDialog } from "@/components/admin/delete-dialog"
-import { deleteCategory } from "../lib/actions"
+import { deleteCustomer } from "../lib/actions"
 import { Button } from "@/components/ui/button"
+import { format } from "date-fns"
 
-export const columns: ColumnDef<Category>[] = [
+export const columns: ColumnDef<User>[] = [
     {
         id: "no",
         header: "No",
@@ -25,7 +25,7 @@ export const columns: ColumnDef<Category>[] = [
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                     className="pl-0 hover:bg-transparent"
                 >
-                    Category Name
+                    Customer Name
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             )
@@ -33,15 +33,35 @@ export const columns: ColumnDef<Category>[] = [
         cell: ({ row }) => <div className="text-left pl-4 capitalize">{row.getValue("name")}</div>,
     },
     {
+        accessorKey: "email",
+        header: ({ column }) => {
+            return (
+                <Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    className="pl-0 hover:bg-transparent"
+                >
+                    Email
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
+    },
+    {
+        accessorKey: "createdAt",
+        header: "Joined At",
+        cell: ({ row }) => <div className="text-muted-foreground">{format(new Date(row.getValue("createdAt")), "dd MMM yyyy")}</div>,
+    },
+    {
         id: "actions",
         enableHiding: false,
         cell: ({ row }) => {
-            const category = row.original
+            const customer = row.original
 
             return (
                 <div className="flex items-center justify-center gap-2">
-                    <EditCategoryDialog category={category} />
-                    <DeleteDialog id={category.id} action={deleteCategory} itemName="Category" />
+                    <DeleteDialog id={customer.id} action={deleteCustomer} itemName="Customer" />
                 </div>
             )
         },
