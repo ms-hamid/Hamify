@@ -12,6 +12,18 @@ export async function uploadFile(formData: FormData) {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
+  // Validate file type
+  const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+  if (!validTypes.includes(file.type)) {
+    return { error: "Invalid file type. Only JPEG, PNG, and WebP are allowed." };
+  }
+
+  // Validate file size (optional, e.g., 5MB)
+  const maxSize = 5 * 1024 * 1024; // 5MB
+  if (file.size > maxSize) {
+    return { error: "File size too large. Max 5MB." };
+  }
+
   // Create unique filename
   const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
   const filename = `${uniqueSuffix}-${file.name.replace(/\s/g, "-")}`;
