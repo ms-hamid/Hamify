@@ -1,101 +1,57 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { categorySchema, TCategory } from "@/lib/schema";
+import { createCategory as dalCreateCategory, updateCategory as dalUpdateCategory, deleteCategory as dalDeleteCategory } from "@/lib/dal/categories";
 
 export async function createCategory(data: TCategory) {
-  const validation = categorySchema.safeParse(data);
+  const result = categorySchema.safeParse(data);
 
-  if (!validation.success) {
+  if (!result.success) {
     return {
-      error: validation.error.issues[0].message,
+      error: result.error.issues[0].message,
     };
   }
 
   try {
-    const existingCategory = await prisma.category.findFirst({
-        where: {
-            name: data.name,
-        }
-    })
-
-    if (existingCategory) {
-        return {
-            error: "Category already exists",
-        }
-    }
-
-    await prisma.category.create({
-      data: {
-        name: data.name,
-      },
-    });
-
+    await dalCreateCategory(data);
     revalidatePath("/dashboard/categories");
     return { success: true };
   } catch (error) {
-    console.error("Failed to create category:", error);
     return {
-      error: "Failed to create category. Please try again later.",
+      error: "Failed to create category",
     };
   }
 }
 
 export async function updateCategory(id: number, data: TCategory) {
-  const validation = categorySchema.safeParse(data);
+  const result = categorySchema.safeParse(data);
 
-  if (!validation.success) {
+  if (!result.success) {
     return {
-      error: validation.error.issues[0].message,
+      error: result.error.issues[0].message,
     };
   }
 
   try {
-    const existingCategory = await prisma.category.findFirst({
-        where: {
-            name: data.name,
-            NOT: {
-              id: id
-            }
-        }
-    })
-
-    if (existingCategory) {
-        return {
-            error: "Category already exists",
-        }
-    }
-
-    await prisma.category.update({
-      where: { id },
-      data: {
-        name: data.name,
-      },
-    });
-
+    await dalUpdateCategory(id, data);
     revalidatePath("/dashboard/categories");
     return { success: true };
   } catch (error) {
-    console.error("Failed to update category:", error);
     return {
-      error: "Failed to update category. Please try again later.",
+      error: "Failed to update category",
     };
   }
 }
 
 export async function deleteCategory(id: number) {
   try {
-    await prisma.category.delete({
-      where: { id },
-    });
-
+    await dalDeleteCategory(id);
     revalidatePath("/dashboard/categories");
     return { success: true };
   } catch (error) {
-    console.error("Failed to delete category:", error);
     return {
-      error: "Failed to delete category. Please try again later.",
+      error: "Failed to delete category",
     };
   }
 }

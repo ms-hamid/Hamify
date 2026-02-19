@@ -61,3 +61,11 @@ export const orderStatusSchema = z.object({
 });
 
 export type TOrderStatus = z.infer<typeof orderStatusSchema>;
+
+// Auth Schema
+export const schemaSignIn = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+export type TSignIn = z.infer<typeof schemaSignIn>;

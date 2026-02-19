@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ecommerce Learning Project (Next.js + Prisma + TypeScript)
 
-## Getting Started
+This project is a personal study lab designed to bridge the gap between **JavaScript Fundamentals** and building modern, production-ready applications. It focuses heavily on understanding **Type Safety (TypeScript)**, **Database Interactions**, and applying **Clean Code** principles in a real-world context.
 
-First, run the development server:
+## 🎯 Learning Objectives
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+This repository is not just about building an ecommerce store; it's about mastering the "Why" and "How" behind the code:
+
+- **From JavaScript to TypeScript:** Transitioning from dynamic typing to strict typing to catch errors early.
+- **Data Modeling:** Designing database schemas with **Prisma ORM** and understanding relationships (One-to-Many).
+- **server-side vs client-side:** Understanding when to use `"use client"` vs `"use server"` (Server Actions).
+- **Clean Code Architecture:**
+  - **Data Access Layer (DAL):** Separating database logic from UI components.
+  - **Centralized Configuration:** Managing constants and validation schemas in one place.
+  - **DRY Principle:** Refactoring repetitive code into reusable functions.
+
+## 🛠 Tech Stack
+
+- **Framework:** Next.js 15 (App Router)
+- **Language:** TypeScript
+- **Database:** PostgreSQL (via Supabase)
+- **ORM:** Prisma
+- **Styling:** Tailwind CSS (Shadcn UI)
+- **Storage:** Supabase Storage (for product images)
+- **Validation:** Zod
+
+## 🚀 Key Implementation Concepts
+
+### 1. Data Access Layer (DAL)
+
+Instead of scattering database queries across random files, we centralized them in `lib/dal/`. This mimics professional patterns where the UI doesn't know _how_ data is fetched, only _that_ it is fetched.
+
+```typescript
+// Example: lib/dal/products.ts
+export const getProducts = cache(async () => {
+  return await prisma.product.findMany({ ... });
+});
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Centralized Validation (Schema)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+We moved all Zod schemas to `lib/schema.ts`. This ensures that validation rules (e.g., "Product price must be > 0" or "Image must be PNG/JPG") are consistent across the app.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Server Actions & Type Safety
 
-## Learn More
+We use Next.js Server Actions for mutations (Create, Update, Delete). TypeScript ensures that the data sent from the client matches exactly what the server expects.
 
-To learn more about Next.js, take a look at the following resources:
+```typescript
+// Example: lib/actions.ts
+export async function createProduct(data: TProduct) {
+  // Typescript ensures 'data' matches the TProduct shape
+}
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📂 Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+├── app/
+│   ├── (admin)/dashboard/  # Admin Panel (Protected)
+│   │   ├── (index)/        # Feature modules (Products, Brands, Orders)
+│   │   │   ├── products/
+│   │   │   │   ├── _components/  # UI Components (Dialogs, Tables)
+│   │   │   │   ├── lib/          # Action wrappers
+│   │   │   │   └── page.tsx      # Main View
+│   │   └── layout.tsx
+├── lib/
+│   ├── dal/                # Data Access Layer (Database Queries)
+│   ├── schema.ts           # Centralized Zod Schemas
+│   ├── constants.ts        # Shared Constants (File limits, MIME types)
+│   ├── prisma.ts           # Prisma Client Instance
+│   └── upload.ts           # Supabase Storage Logic
+├── prisma/
+│   └── schema.prisma       # Database Models
+└── public/                 # Static Assets
+```
 
-## Deploy on Vercel
+## 📝 Getting Started
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1.  **Clone the repo**
+2.  **Install dependencies:** `npm install`
+3.  **Setup Environment Variables:**
+    Create a `.env` file with:
+    ```
+    DATABASE_URL="postgresql://..."
+    NEXT_PUBLIC_SUPABASE_URL="https://..."
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY="..."
+    SUPABASE_SERVICE_ROLE_KEY="..."
+    ```
+4.  **Run Migrations:** `npx prisma migrate dev`
+5.  **Start Dev Server:** `npm run dev`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+_Built with ❤️ for learning and mastering modern web development._

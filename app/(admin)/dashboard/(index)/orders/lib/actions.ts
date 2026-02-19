@@ -1,48 +1,37 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { orderStatusSchema, TOrderStatus } from "@/lib/schema";
+import { updateOrderStatus as dalUpdateOrderStatus, deleteOrder as dalDeleteOrder } from "@/lib/dal/orders";
 
 export async function updateOrderStatus(id: number, data: TOrderStatus) {
-  const validation = orderStatusSchema.safeParse(data);
+  const result = orderStatusSchema.safeParse(data);
 
-  if (!validation.success) {
+  if (!result.success) {
     return {
-      error: validation.error.issues[0].message,
+      error: result.error.issues[0].message,
     };
   }
 
   try {
-    await prisma.order.update({
-      where: { id },
-      data: {
-        status: data.status,
-      },
-    });
-
+    await dalUpdateOrderStatus(id, data.status);
     revalidatePath("/dashboard/orders");
     return { success: true };
   } catch (error) {
-    console.error("Failed to update order status:", error);
     return {
-      error: "Failed to update order. Please try again later.",
+      error: "Failed to update order status",
     };
   }
 }
 
 export async function deleteOrder(id: number) {
   try {
-    await prisma.order.delete({
-      where: { id },
-    });
-
+    await dalDeleteOrder(id);
     revalidatePath("/dashboard/orders");
     return { success: true };
   } catch (error) {
-    console.error("Failed to delete order:", error);
     return {
-      error: "Failed to delete order. Please try again later.",
+      error: "Failed to delete order",
     };
   }
 }
