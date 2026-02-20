@@ -4,8 +4,6 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Order, User } from "@prisma/client"
 import { ArrowUpDown } from "lucide-react"
 import { EditOrderDialog } from "./edit-order-dialog"
-import { DeleteDialog } from "@/components/admin/delete-dialog"
-import { deleteOrder } from "../lib/actions"
 import { Button } from "@/components/ui/button"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
@@ -100,7 +98,6 @@ export const columns: ColumnDef<OrderWithUser>[] = [
             return (
                 <div className="flex items-center justify-center gap-2">
                     <EditOrderDialog order={order} />
-                    <DeleteDialog id={order.id} action={deleteOrder} itemName="Order" />
                 </div>
             )
         },

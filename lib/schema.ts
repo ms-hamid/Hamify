@@ -79,3 +79,11 @@ export const schemaSignIn = z.object({
 });
 
 export type TSignIn = z.infer<typeof schemaSignIn>;
+
+export const schemaSignUp = z.object({
+  name: z.string().min(3, "Name must be at least 3 characters").max(255, "Name must be less than 255 characters"),
+  email: z.string().email("Invalid email address").max(255, "Email must be less than 255 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters").max(255, "Password must be less than 255 characters"),
+});
+
+export type TSignUp = z.infer<typeof schemaSignUp>;

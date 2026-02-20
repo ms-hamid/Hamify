@@ -3,8 +3,6 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { User } from "@prisma/client"
 import { ArrowUpDown } from "lucide-react"
-import { DeleteDialog } from "@/components/admin/delete-dialog"
-import { deleteCustomer } from "../lib/actions"
 import { Button } from "@/components/ui/button"
 import { format } from "date-fns"
 
@@ -52,18 +50,5 @@ export const columns: ColumnDef<User>[] = [
         accessorKey: "createdAt",
         header: "Joined At",
         cell: ({ row }) => <div className="text-muted-foreground">{format(new Date(row.getValue("createdAt")), "dd MMM yyyy")}</div>,
-    },
-    {
-        id: "actions",
-        enableHiding: false,
-        cell: ({ row }) => {
-            const customer = row.original
-
-            return (
-                <div className="flex items-center justify-center gap-2">
-                    <DeleteDialog id={customer.id} action={deleteCustomer} itemName="Customer" />
-                </div>
-            )
-        },
     },
 ]
