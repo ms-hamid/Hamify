@@ -61,7 +61,7 @@ export function EditProductDialog({ product, brands, categories, locations }: Ed
             brandId: product.brandId,
             categoryId: product.categoryId,
             locationId: product.locationId,
-            images: product.images[0] || "",
+            images: product.images || [],
         },
     });
 
@@ -76,7 +76,7 @@ export function EditProductDialog({ product, brands, categories, locations }: Ed
                 brandId: product.brandId,
                 categoryId: product.categoryId,
                 locationId: product.locationId,
-                images: product.images[0] || "",
+                images: product.images || [],
             });
             setError(null);
         }
@@ -86,32 +86,23 @@ export function EditProductDialog({ product, brands, categories, locations }: Ed
         setError(null);
 
         startTransition(async () => {
-            let imageUrl = values.images; // Default to existing
+            try {
+                // Ensure values are numbers where expected by the schema/action
+                // The form handles coercing, but explicit checking is good
+                const result = await updateProduct(product.id, values);
 
-            if (values.images && values.images instanceof File) {
-                const formData = new FormData();
-                formData.append("file", values.images);
-                const uploadRes = await uploadFile(formData);
-
-                if (uploadRes.error) {
-                    setError(uploadRes.error);
-                    return;
+                if (result?.error) {
+                    setError(result.error);
+                } else {
+                    setOpen(false);
+                    toast.success("Product updated successfully");
                 }
-                imageUrl = uploadRes.url as string;
-            }
-
-            // Ensure values are numbers where expected by the schema/action
-            // The form handles coercing, but explicit checking is good
-            const result = await updateProduct(product.id, {
-                ...values,
-                images: imageUrl as string
-            });
-
-            if (result?.error) {
-                setError(result.error);
-            } else {
-                setOpen(false);
-                toast.success("Product updated successfully");
+            } catch (err: any) {
+                if (err.message?.includes("Body exceeded") || err.message?.includes("Payload")) {
+                    setError("Total file size too large. Maximum allowed is 30MB.");
+                } else {
+                    setError(err instanceof Error ? err.message : "An unexpected error occurred");
+                }
             }
         });
     }
@@ -278,60 +269,63 @@ export function EditProductDialog({ product, brands, categories, locations }: Ed
                             <FormField
                                 control={form.control}
                                 name="images"
-                                render={({ field: { value, onChange, ...field } }) => (
+                                render={({ field: { value, onChange, ...fieldProps } }) => (
                                     <FormItem className="col-span-2">
-                                        <FormLabel>Product Image (Optional)</FormLabel>
+                                        <FormLabel>Product Images (Max 4)</FormLabel>
                                         <FormControl>
-                                            <div className="space-y-3">
-                                                {/* Image Preview & Remove Button */}
-                                                {currentImage && typeof currentImage === 'string' && currentImage.length > 0 ? (
-                                                    <div className="relative w-full h-[200px] rounded-lg border overflow-hidden bg-slate-50">
-                                                        <Image
-                                                            src={currentImage}
-                                                            alt="Product Image"
-                                                            fill
-                                                            className="object-contain p-2"
-                                                        />
-                                                        <Button
-                                                            type="button"
-                                                            variant="destructive"
-                                                            size="icon"
-                                                            className="absolute top-2 right-2 h-6 w-6"
-                                                            onClick={() => form.setValue("images", "")}
-                                                        >
-                                                            <X className="h-3 w-3" />
-                                                            <span className="sr-only">Remove image</span>
-                                                        </Button>
-                                                    </div>
-                                                ) : null}
+                                            <div className="space-y-4">
+                                                {/* Image Previews */}
+                                                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                                                    {Array.isArray(value) && value.map((item: string | File, index: number) => {
+                                                        const src = item instanceof File ? URL.createObjectURL(item) : item;
+                                                        return (
+                                                            <div key={index} className="relative aspect-square rounded-md overflow-hidden border">
+                                                                <Image
+                                                                    src={src}
+                                                                    alt={`Preview ${index}`}
+                                                                    fill
+                                                                    className="object-cover"
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const newFiles = [...value];
+                                                                        newFiles.splice(index, 1);
+                                                                        onChange(newFiles);
+                                                                    }}
+                                                                    className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90 transition-colors"
+                                                                >
+                                                                    <X className="h-3 w-3" />
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
 
+                                                {/* File Input */}
                                                 <div className="flex items-center gap-2">
                                                     <Input
+                                                        {...fieldProps}
                                                         type="file"
                                                         accept="image/*"
+                                                        multiple
                                                         disabled={isPending}
                                                         onChange={(e) => {
-                                                            const file = e.target.files?.[0];
-                                                            if (file) {
-                                                                onChange(file);
+                                                            const files = Array.from(e.target.files || []);
+                                                            const currentFiles = Array.isArray(value) ? value : [];
+
+                                                            if (currentFiles.length + files.length > 4) {
+                                                                toast.error("Maximum 4 images allowed");
+                                                                return;
                                                             }
+
+                                                            onChange([...currentFiles, ...files]);
+                                                            e.target.value = "";
                                                         }}
-                                                        {...field}
                                                     />
-                                                    {currentImage instanceof File && (
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => form.setValue("images", "")}
-                                                            className="text-red-500 hover:text-red-700"
-                                                        >
-                                                            Remove
-                                                        </Button>
-                                                    )}
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Select a new file to replace the current image, or remove it.
+                                                    You can upload up to 4 images.
                                                 </p>
                                             </div>
                                         </FormControl>

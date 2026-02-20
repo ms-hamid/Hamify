@@ -43,13 +43,23 @@ export const productSchema = z.object({
   locationId: z.coerce.number().min(1, "Location is required"),
   images: z
     .any()
-    .refine((file) => {
-      if (typeof window === "undefined") return true; // Skip on server if needed
-      if (file instanceof File) {
-        return ACCEPTED_IMAGE_TYPES.includes(file.type);
+    .refine((files) => {
+      if (typeof window === "undefined") return true; 
+      if (!files) return true; // Optional
+      if (Array.isArray(files)) {
+        return files.every((file) => {
+            if (file instanceof File) return ACCEPTED_IMAGE_TYPES.includes(file.type);
+            return typeof file === "string"; // Allow URLs
+        });
       }
-      return true; // Allow string URL or empty
-    }, "Only images (JPEG, PNG, WebP) are allowed")
+      // Single file
+      if (files instanceof File) return ACCEPTED_IMAGE_TYPES.includes(files.type);
+      return typeof files === "string";
+    }, "Only .jpg, .jpeg, .png and .webp formats are supported.")
+    .refine((files) => {
+       if (Array.isArray(files)) return files.length <= 4;
+       return true; 
+    }, "Maximum 4 images allowed.")
     .optional(),
 });
 

@@ -5,7 +5,8 @@ import { productSchema, TProduct } from "@/lib/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useTransition, useState } from "react";
-import { Loader2, Plus, AlertCircle } from "lucide-react";
+import { Loader2, Plus, AlertCircle, X } from "lucide-react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { uploadFile } from "@/lib/upload";
 import {
@@ -59,38 +60,30 @@ export function CreateProductDialog({ brands, categories, locations }: CreatePro
             brandId: 0,
             categoryId: 0,
             locationId: 0,
-            images: "",
+            images: [],
         },
     });
 
     async function onSubmit(values: TProduct) {
         setError(null);
         startTransition(async () => {
-            let imageUrl = "/images/placeholder.svg";
+            try {
+                const result = await createProduct(values);
 
-            if (values.images && values.images instanceof File) {
-                const formData = new FormData();
-                formData.append("file", values.images);
-                const uploadRes = await uploadFile(formData);
-
-                if (uploadRes.error) {
-                    setError(uploadRes.error);
-                    return;
+                if (result?.error) {
+                    setError(result.error);
+                } else {
+                    setOpen(false);
+                    form.reset();
+                    toast.success("Product created successfully");
                 }
-                imageUrl = uploadRes.url as string;
-            }
-
-            const result = await createProduct({
-                ...values,
-                images: imageUrl // Pass the processed URL string
-            });
-
-            if (result?.error) {
-                setError(result.error);
-            } else {
-                setOpen(false);
-                form.reset();
-                toast.success("Product created successfully");
+            } catch (err: any) {
+                // Next.js might throw "Body exceeded 1MB limit" or similar
+                if (err.message?.includes("Body exceeded") || err.message?.includes("Payload")) {
+                    setError("Total file size too large. Maximum allowed is 30MB.");
+                } else {
+                    setError(err instanceof Error ? err.message : "An unexpected error occurred");
+                }
             }
         });
     }
@@ -250,21 +243,63 @@ export function CreateProductDialog({ brands, categories, locations }: CreatePro
                             <FormField
                                 control={form.control}
                                 name="images"
-                                render={({ field }) => (
+                                render={({ field: { value, onChange, ...fieldProps } }) => (
                                     <FormItem className="col-span-2">
-                                        <FormLabel>Product Image (Optional)</FormLabel>
+                                        <FormLabel>Product Images (Max 4)</FormLabel>
                                         <FormControl>
-                                            <Input
-                                                type="file"
-                                                accept="image/*"
-                                                disabled={isPending}
-                                                onChange={(e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (file) {
-                                                        form.setValue("images", file as any);
-                                                    }
-                                                }}
-                                            />
+                                            <div className="space-y-4">
+                                                {/* Image Previews */}
+                                                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                                                    {Array.isArray(value) && value.map((file: File, index: number) => (
+                                                        <div key={index} className="relative aspect-square rounded-md overflow-hidden border">
+                                                            <Image
+                                                                src={URL.createObjectURL(file)}
+                                                                alt={`Preview ${index}`}
+                                                                fill
+                                                                className="object-cover"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const newFiles = [...value];
+                                                                    newFiles.splice(index, 1);
+                                                                    onChange(newFiles);
+                                                                }}
+                                                                className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90 transition-colors"
+                                                            >
+                                                                <X className="h-3 w-3" />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                {/* File Input */}
+                                                <div className="flex items-center gap-2">
+                                                    <Input
+                                                        {...fieldProps}
+                                                        type="file"
+                                                        accept="image/*"
+                                                        multiple
+                                                        disabled={isPending}
+                                                        onChange={(e) => {
+                                                            const files = Array.from(e.target.files || []);
+                                                            const currentFiles = Array.isArray(value) ? value : [];
+
+                                                            if (currentFiles.length + files.length > 4) {
+                                                                toast.error("Maximum 4 images allowed");
+                                                                return;
+                                                            }
+
+                                                            onChange([...currentFiles, ...files]);
+                                                            // Reset input value to allow selecting same file again if needed
+                                                            e.target.value = "";
+                                                        }}
+                                                    />
+                                                </div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    You can upload up to 4 images.
+                                                </p>
+                                            </div>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
