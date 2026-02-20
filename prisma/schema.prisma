@@ -116,6 +116,9 @@ model Product {
   // Di JS/TS: Variabel 'price' type BigInt (perlu penanganan khusus saat JSON.stringify).
   price BigInt @db.BigInt
 
+  // Total penjualan produk (untuk sorting best seller)
+  totalSales Int @default(0) @map("total_sales")
+
   stock StockProduct
 
   // String[]: Tipe array native di Postgres.

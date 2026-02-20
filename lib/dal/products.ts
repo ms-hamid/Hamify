@@ -49,7 +49,7 @@ export async function createProduct(data: TProduct) {
         brandId: data.brandId,
         categoryId: data.categoryId,
         locationId: data.locationId,
-        images: data.images ? [data.images] : [],
+        images: data.images || [],
       },
     });
   } catch (error) {
@@ -90,7 +90,7 @@ export async function updateProduct(id: number, data: TProduct) {
         brandId: data.brandId,
         categoryId: data.categoryId,
         locationId: data.locationId,
-        images: data.images ? [data.images] : [],
+        images: data.images || [],
       },
     });
   } catch (error) {
